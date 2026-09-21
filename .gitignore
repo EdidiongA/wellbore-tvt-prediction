@@ -1,0 +1,11 @@
+# Competition data must never be committed (data-use rules prohibit redistribution)
+data/*
+!data/README.md
+*.csv
+*.parquet
+*.pkl
+submission*.csv
+# environment noise
+__pycache__/
+.ipynb_checkpoints/
+.DS_Store
