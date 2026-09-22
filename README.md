@@ -2,7 +2,7 @@
 
 # Blind-Zone TVT Prediction in Horizontal Wells
 
-**A structural-coordinate tracker with deployment-side dose calibration — and a three-way study of why leaderboards disagree**
+**A structural-coordinate tracker with deployment-side dose calibration, and a three-way study of why leaderboards disagree**
 
 [![Kaggle](https://img.shields.io/badge/Kaggle-Silver%20Medal-C0C0C0?logo=kaggle&logoColor=white)](https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction)
 ![Rank](https://img.shields.io/badge/rank-241%20%2F%206125%20·%20top%204%25-2E86AB)
@@ -16,9 +16,9 @@
 
 ---
 
-Geosteering — keeping a horizontal well inside its target zone — depends on knowing the well's geological position where direct interpretation runs out: the **blind zone**, roughly 75% of every lateral. Horizontal wells produce ~94% of U.S. crude oil; this is the informational bottleneck under all of it.
+Geosteering is the practice of keeping a horizontal well inside its target zone while drilling. It depends on knowing the well's geological position in the stretch where direct interpretation runs out: the blind zone, which covers roughly 75% of every lateral. Horizontal wells produce about 94% of U.S. crude oil, so this prediction problem sits underneath nearly all of it.
 
-This repository contains a complete solution built in **four weeks of participation**: top 4% of 6,125 teams, rising **3,039 places** at the private-leaderboard reveal — a collapse of the overfit public tier that this work's own analysis predicted in writing beforehand (preprint, §10).
+This repository contains a complete solution built in four weeks of participation. It finished in the top 4% of 6,125 teams and rose 3,039 places when the private leaderboard was revealed, as an overfit public tier collapsed. That collapse was predicted in writing before the reveal; the analysis is in Section 10 of the preprint.
 
 <div align="center">
 
@@ -30,57 +30,57 @@ This repository contains a complete solution built in **four weeks of participat
 
 | | Public LB | Private LB |
 |---|:---:|:---:|
-| Constant-continuation baseline | 15.88 | — |
+| Constant-continuation baseline | 15.88 | not scored |
 | Base model (v22: tracker + fusion + field) | 8.913 | 8.416 |
-| **Final (v55: + calibrated regularization stack)** | **8.720** | **8.354** |
+| **Final (v55: base + calibrated regularization stack)** | **8.720** | **8.354** |
 
-A **45% error reduction** with every step attributed to a single named mechanism — the full ledger, including every falsified idea, is in [`docs/campaign_log.md`](docs/campaign_log.md).
+A 45% error reduction, with every step attributed to a single named mechanism. The full ledger, including every falsified idea, lives in [`docs/campaign_log.md`](docs/campaign_log.md).
 
 ## The method
 
-Reparameterize the target into a structural coordinate **u = TVT + Z**: thickness is dominated by wellbore geometry, but *u* is smooth geology — a tracking problem, not a regression problem.
+The first move is a change of coordinates. Predicting thickness (TVT) directly is hard because the signal is dominated by wellbore geometry. Adding the known well path gives a structural coordinate, u = TVT + Z, which is smooth geology. That single reparameterization turns a noisy regression problem into a tracking problem.
 
 <div align="center">
 <img src="figures/F2_lattice.png" width="880" alt="Second-order (u, dip) trellis with banded beam search"/>
 </div>
 
-A second-order **(u, dip) hidden-state tracker** (banded trellis, coarse-to-fine to 0.25 ft, GR-correlation emissions against a merged typewell reference) is fused per-station with drift-cancelling, typewell-anchored, and spatial-field branches by **inverse-variance weighting of their live disagreement**. One CPU core, ~4 seconds per well, no offset logs.
+A second-order hidden-state tracker follows (u, dip) through a banded trellis: 30-foot blocks, coarse-to-fine refinement down to 0.25 ft, and emissions from windowed gamma-ray correlation against a merged typewell reference. Its output is fused, station by station, with drift-cancelling, typewell-anchored, and spatial-field branches, weighted by the inverse variance of their live disagreement. The whole pipeline runs on one CPU core at about 4 seconds per well and needs no offset logs.
 
 ## Three findings worth stealing
 
-**1 — Validation is an instrument you can point at deployment.** Deliberately spent probe submissions fit a *local-to-leaderboard transfer law*; departures from the law diagnose mechanisms. The correction that broke it — best-ever local score, CI-validated — was the worst deployment score of its era:
+**1. Validation is an instrument you can point at deployment.** Submissions were spent deliberately as measurements. A handful of probes fit a transfer law linking local validation scores to leaderboard scores, and departures from that law diagnose mechanisms rather than just rank them. The correction that broke the law had the best local score of its era, with a full confidence-interval validation behind it, and produced the worst deployment score:
 
 <div align="center">
 <img src="figures/F3_transfer.png" width="760" alt="Transfer law and its inversion"/>
 </div>
 
-**2 — Deployment-side optima are displaced from local ones.** Four regularization axes (damping strength, high-frequency shrinkage, drift dose, drift profile) were dose-response mapped directly against the evaluation set. Each has a clean interior optimum — at doses local validation scores as *harmful*:
+**2. Deployment-side optima are displaced from local ones.** Four regularization axes were dose-response mapped directly against the evaluation set: damping strength, high-frequency shrinkage, drift dose, and drift profile. Each shows a clean interior optimum, and each optimum sits at a dose that local validation prices as harmful:
 
 <div align="center">
 <img src="figures/F5b_displacement.png" width="760" alt="The displacement law"/>
 <img src="figures/F5d_drift.png" width="760" alt="Drift axis: four probes, one parabola"/>
 </div>
 
-**3 — Every finite evaluation set imposes its own optimum.** The same submissions were scored three ways — local CV, public LB, private LB — and the orderings disagreed *twice over*. Only structure-grounded mechanisms transferred across all three splits:
+**3. Every finite evaluation set imposes its own optimum.** The same submissions ended up scored three ways: local cross-validation, the public leaderboard, and the private leaderboard. The orderings disagreed twice over. A correction falsified on the public split turned out to be the best private score of all. The only mechanisms that transferred across all three splits were the ones grounded in problem structure; everything finely tuned to one split inherited that split's fingerprint:
 
 <div align="center">
-<img src="figures/F7_public_private.png" width="760" alt="Public vs private verdicts disagree"/>
+<img src="figures/F7_public_private.png" width="760" alt="Public and private verdicts disagree"/>
 </div>
 
 ## Repository layout
 
 | Path | Contents |
 |---|---|
-| [`model/`](model) | Tracker notebooks (final base: `rogii_tvt_tracker_v22.ipynb`) + leave-one-well-out instrumentation |
-| [`neural/`](neural) | The sequence-model line: 1D U-Net → BiGRU (five-fold OOF) + tracker↔BiGRU join analysis |
-| [`postprocessing/`](postprocessing) | The submission campaign v25–v58 — one mechanism per file |
-| [`diagnostics/`](diagnostics) | Local instruments (L1–L8), drift/anchor/slope probes, exploitability tests |
-| [`papers/`](papers) | Preprint PDF + manuscript sources (journal, URTeC, EAGE, IMAGE) |
-| [`docs/`](docs) | Full campaign log — every submission, mechanism, public & private score |
+| [`model/`](model) | Tracker notebooks (final base: `rogii_tvt_tracker_v22.ipynb`) plus leave-one-well-out instrumentation |
+| [`neural/`](neural) | The sequence-model line: 1D U-Net, then a BiGRU with five-fold OOF, plus the tracker/BiGRU join analysis |
+| [`postprocessing/`](postprocessing) | The submission campaign v25 through v58, one mechanism per file |
+| [`diagnostics/`](diagnostics) | Local instruments (L1 to L8), drift, anchor and slope probes, exploitability tests |
+| [`papers/`](papers) | Preprint PDF and manuscript sources for the journal, URTeC, EAGE and IMAGE versions |
+| [`docs/`](docs) | The full campaign log: every submission, its mechanism, and its public and private scores |
 
 ## Data
 
-Competition data is **not redistributed** here, per the competition's data-use rules. Join the [competition](https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction) and attach its dataset on Kaggle; notebooks are written for that environment (CPU, internet off).
+Competition data is not redistributed here, in line with the competition's data-use rules. To run the notebooks, join the [competition](https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction) and attach its dataset on Kaggle. The notebooks are written for that environment (CPU, internet off).
 
 ## Citing
 
@@ -96,4 +96,4 @@ Competition data is **not redistributed** here, per the competition's data-use r
 
 ## License
 
-Code: [MIT](LICENSE). Papers and figures © 2026 Edidiong Anwanane; preprint distributed under CC BY 4.0 via arXiv.
+Code is released under the [MIT License](LICENSE). Papers and figures are copyright 2026 Edidiong Anwanane; the preprint is distributed under CC BY 4.0 via arXiv.
