@@ -10,7 +10,7 @@
 ![Compute](https://img.shields.io/badge/compute-CPU%20only%20·%204s%2Fwell-0F7B6C)
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
-**Edidiong Anwanane** · [Kaggle competition](https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction) · [Preprint (PDF)](papers/rogii_preprint_Anwanane.pdf) · arXiv link forthcoming
+**Edidiong-Abasi Anwanane** · [Kaggle competition](https://www.kaggle.com/competitions/rogii-wellbore-geology-prediction) · [Preprint (PDF)](papers/rogii_preprint_Anwanane.pdf) · arXiv link forthcoming
 
 </div>
 
@@ -86,7 +86,7 @@ Competition data is not redistributed here, in line with the competition's data-
 
 ```bibtex
 @misc{anwanane2026tvt,
-  author = {Anwanane, Edidiong},
+  author = {Anwanane, Edidiong-Abasi},
   title  = {Blind-Zone TVT Prediction in Horizontal Wells: An Information-Ceiling
             Study with Deployment-Side Dose Calibration},
   year   = {2026},
@@ -96,4 +96,4 @@ Competition data is not redistributed here, in line with the competition's data-
 
 ## License
 
-Code is released under the [MIT License](LICENSE). Papers and figures are copyright 2026 Edidiong Anwanane; the preprint is distributed under CC BY 4.0 via arXiv.
+Code is released under the [MIT License](LICENSE). Papers and figures are copyright 2026 Edidiong-Abasi Anwanane; the preprint is distributed under CC BY 4.0 via arXiv.
